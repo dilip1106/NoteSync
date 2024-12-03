@@ -241,132 +241,137 @@ const [resetpasswordError, setResetPasswordError] = useState("");
       alert("Failed to remove password. Please try again later.");
     }
   };
+
+
   return (
     <div style={styles.container}>
-      {isLoading ? (
-        <p className="text-2xl animate-pulse">Loading...</p>
-      ) : isPasswordProtected && !passwordVerified ? (
-        <div className="flex flex-col items-center space-y-4">
-          <p className="text-lg">This note is password protected. Please enter the password:</p>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="bg-gray-800 text-white p-2 rounded-lg w-64"
-          />
-          <button
-            onClick={verifyPassword}
-            className="px-6 py-2 bg-blue-600 rounded-lg text-white hover:bg-blue-700"
-          >
-            Verify Password
-          </button>
-          {passwordError && <p className="text-red-500">{passwordError}</p>}
-        </div>
-      ) :  (
-        <>
-        <div style={styles.topRight}>
-        <p>
-          File Available:{" "}
-          <span style={{ color: fileAvailable ? "green" : "red" }}>
-            {fileAvailable ? "Yes" : "No"}
-          </span>
-        </p>
-        <p>Users Online: {userCount}</p>
+    {isLoading ? (
+      <p className="text-2xl animate-pulse">Loading...</p>
+    ) : isPasswordProtected && !passwordVerified ? (
+      <div className="flex flex-col items-center space-y-4">
+        <p className="text-lg">This note is password protected. Please enter the password:</p>
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          style={styles.input} // Apply new style here
+        />
+        <button
+          onClick={verifyPassword}
+          style={buttonStyles("#007BFF")} // Blue for Verify
+        >
+          Verify Password
+        </button>
+        {passwordError && <p className="text-red-500">{passwordError}</p>}
       </div>
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            onBlur={updateNote}
-            style={styles.textArea}
-            rows="10"
+    ) : (
+      <>
+        <div style={styles.topRight}>
+          <p>
+            File Available:{" "}
+            <span style={{ color: fileAvailable ? "green" : "red" }}>
+              {fileAvailable ? "Yes" : "No"}
+            </span>
+          </p>
+          <p>Users Online: {userCount}</p>
+        </div>
+        <textarea
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          onBlur={updateNote}
+          style={styles.textArea}
+          rows="10"
+        />
+        <div>
+          <input
+            type="file"
+            onChange={handleFileUpload}
+            style={styles.input} // Apply new style here
           />
-          <div>
-            <input type="file" onChange={handleFileUpload} />
-            <button onClick={handleFileDownload} className="inline-block cursor-pointer rounded-md bg-gray-800 px-4 py-3 text-center text-sm font-semibold uppercase text-white transition duration-200 ease-in-out hover:bg-gray-900">Download File</button>
-            {fileAvailable && (
-              <button onClick={handleFileRemove} style={styles.removeButton}>
-                Remove File
-              </button>
-            )}<>
-            {!isPasswordProtected && (
-              <button
-                onClick={handleAddPasswordClick}
-                className="px-6 py-2 bg-green-600 rounded-lg text-white hover:bg-green-700"
-              >
-                Add Password
-              </button>
-            )}
-    
-            {showPasswordModal && (
-              <div className="modal flex flex-col items-center space-y-4">
-                <p className="text-lg">Set a password for this note:</p>
-                <input
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  className="bg-gray-800 text-white p-2 rounded-lg w-64"
-                />
-                <div className="space-x-4">
-                  <button
-                    onClick={handleSavePassword}
-                    className="px-4 py-2 bg-blue-600 rounded-lg text-white hover:bg-blue-700"
-                  >
-                    Save Password
-                  </button>
-                  <button
-                    onClick={() => setShowPasswordModal(false)}
-                    className="px-4 py-2 bg-gray-600 rounded-lg text-white hover:bg-gray-700"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            )}
-          </>
-          <>
-        {isPasswordProtected && (
           <button
-            onClick={handleRemovePasswordClick}
-            className="px-6 py-2 bg-red-600 rounded-lg text-white hover:bg-red-700"
+            onClick={handleFileDownload}
+            style={buttonStyles("#333")}
           >
-            Remove Password
+            Download File
           </button>
-        )}
-
-        {removePasswordModal && (
-          <div className="modal flex flex-col items-center space-y-4">
-            <p className="text-lg">Enter the current password to remove it:</p>
-            <input
-              type="password"
-              value={enteredPassword}
-              onChange={(e) => setEnteredPassword(e.target.value)}
-              className="bg-gray-800 text-white p-2 rounded-lg w-64"
-            />
-            {passwordError && <p className="text-red-500">{passwordError}</p>}
-            <div className="space-x-4">
-              <button
-                onClick={verifyAndRemovePassword}
-                className="px-4 py-2 bg-blue-600 rounded-lg text-white hover:bg-blue-700"
-              >
-                Verify & Remove
-              </button>
-              <button
-                onClick={() => setRemovePasswordModal(false)}
-                className="px-4 py-2 bg-gray-600 rounded-lg text-white hover:bg-gray-700"
-              >
-                Cancel
-              </button>
+          {fileAvailable && (
+            <button onClick={handleFileRemove} style={styles.removeButton}>
+              Remove File
+            </button>
+          )}
+          {!isPasswordProtected && (
+            <button
+              onClick={handleAddPasswordClick}
+              style={buttonStyles("#4CAF50")} // Green for Add Password
+            >
+              Add Password
+            </button>
+          )}
+          {showPasswordModal && (
+            <div className="modal flex flex-col items-center space-y-4">
+              <p className="text-lg">Set a password for this note:</p>
+              <input
+                type="text"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                style={styles.input} // Apply new style here
+              />
+              <div className="space-x-4">
+                <button
+                  onClick={handleSavePassword}
+                  style={buttonStyles("#007BFF")} // Blue for Save
+                >
+                  Save Password
+                </button>
+                <button
+                  onClick={() => setShowPasswordModal(false)}
+                  style={buttonStyles("#6C757D")} // Grey for Cancel
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+          {isPasswordProtected && (
+            <button
+              onClick={handleRemovePasswordClick}
+              style={buttonStyles("#FF5C5C")} // Red for Remove Password
+            >
+              Remove Password
+            </button>
+          )}
+          {removePasswordModal && (
+            <div className="modal flex flex-col items-center space-y-4">
+              <p className="text-lg">Enter the current password to remove it:</p>
+              <input
+                type="password"
+                value={enteredPassword}
+                onChange={(e) => setEnteredPassword(e.target.value)}
+                style={styles.input} // Apply new style here
+              />
+              {passwordError && <p className="text-red-500">{passwordError}</p>}
+              <div className="space-x-4">
+                <button
+                  onClick={verifyAndRemovePassword}
+                  style={buttonStyles("#007BFF")} // Blue for Verify & Remove
+                >
+                  Verify & Remove
+                </button>
+                <button
+                  onClick={() => setRemovePasswordModal(false)}
+                  style={buttonStyles("#6C757D")} // Grey for Cancel
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </>
-          </div>
-        </>
-      )}
-    </div>
-  );
-};
-
+    )}
+  </div>
+);
+}
 const styles = {
   container: {
     backgroundColor: "#121212",
@@ -411,12 +416,55 @@ const styles = {
   removeButton: {
     marginLeft: "10px",
     color: "white",
-    backgroundColor: "red",
+    backgroundColor: "#FF5C5C", // Red background
     border: "none",
-    padding: "10px",
-    borderRadius: "5px",
+    padding: "12px 20px",
+    borderRadius: "6px",
     cursor: "pointer",
+    transition: "background-color 0.3s ease", // Smooth background change
+  },
+  button: {
+    padding: "12px 20px",
+    borderRadius: "6px",
+    cursor: "pointer",
+    fontWeight: "600",
+    textTransform: "uppercase",
+    fontSize: "14px",
+    border: "none",
+    transition: "background-color 0.3s ease, transform 0.2s ease", // Transition for background and scale
+  },
+  addPasswordButton: {
+    backgroundColor: "#4CAF50", // Green background
+    color: "white",
+  },
+  verifyButton: {
+    backgroundColor: "#007BFF", // Blue background
+    color: "white",
+  },
+  removePasswordButton: {
+    backgroundColor: "#FF5C5C", // Red background for removal
+    color: "white",
+  },
+  cancelButton: {
+    backgroundColor: "#6C757D", // Grey background for cancel
+    color: "white",
+  },
+  input: {
+    backgroundColor: "#333", // Dark background for inputs
+    color: "white", // White text color
+    padding: "12px", // Increased padding for bigger input
+    fontSize: "18px", // Bigger font size
+    borderRadius: "6px", // Rounded corners
+    width: "10%", // Full width
+    marginBottom: "10px", // Space between inputs
+    outline: "none", // Remove default outline
+    boxSizing: "border-box", // Ensure padding doesn't affect width
   },
 };
+
+const buttonStyles = (color) => ({
+  ...styles.button,
+  backgroundColor: color,
+});
 
 export default NoteEditor;
