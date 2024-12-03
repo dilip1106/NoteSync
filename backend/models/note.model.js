@@ -6,11 +6,10 @@ const noteSchema = new mongoose.Schema({
   uniqueUrl: { type: String, unique: true },
   isProtected: { type: Boolean, default: false },
   password: { type: String, default: '' },
-  filePath: { type: String }, // Full path to the saved file
-  fileName: { type: String }, // Original file name (with extension)
+  filePath: { type: String },
+  fileName: { type: String },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
-  
 });
 
 

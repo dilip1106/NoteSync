@@ -7,6 +7,11 @@ import {
   uploadFile,
   upload,
   checkFileAvailability,
+  removeFile,
+  isProtected,
+  checkVerified,
+  addPasswordToNote,
+  removePasswordFromNote,
 } from "../controllers/note.controller.js";
 import multer from 'multer';
 
@@ -21,5 +26,9 @@ router.put("/:uniqueUrl", updateNote);
 router.post('/upload/:uniqueUrl', upload.single('file'), uploadFile);
 router.get('/check-file/:uniqueUrl', checkFileAvailability);
 router.get('/download/:uniqueUrl', downloadFile);
-
+router.delete('/remove-file/:uniqueUrl', removeFile);
+router.get('/is-protected/:uniqueUrl',isProtected)
+router.post('/verify-password/:uniqueUrl',checkVerified);
+router.patch("/add-password/:uniqueUrl", addPasswordToNote);
+router.patch("/remove-password/:uniqueUrl", removePasswordFromNote);
 export default router;

@@ -170,7 +170,7 @@ export const checkFileAvailability = async (req, res) => {
 
     // Check if the note exists
     const note = await Note.findOne({ uniqueUrl });
-    if (!note || !note.hasFile) {
+    if (!note || !note.filePath) {
       return res.status(404).json({ message: 'No file available for this URL' });
     }
 
@@ -181,6 +181,113 @@ export const checkFileAvailability = async (req, res) => {
   }
 };
 
+// Add to note.controller.js
+export const removeFile = async (req, res) => {
+  try {
+    const { uniqueUrl } = req.params;
 
+    // Find the note by its unique URL
+    const note = await Note.findOne({ uniqueUrl });
+    if (!note || !note.filePath) {
+      return res.status(404).json({ error: 'File not found' });
+    }
 
+    const filePath = path.join(__dirname, 'uploads', note.filePath);
 
+    // Delete the file from the server
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+
+    // Update the database
+    note.filePath = null;
+    note.hasFile = false;
+    await note.save();
+
+    res.status(200).json({ message: 'File removed successfully' });
+  } catch (error) {
+    console.error('Error removing file:', error);
+    res.status(500).json({ error: 'Failed to remove file' });
+  }
+};
+
+export const isProtected = async (req,res) => {
+
+  try {
+    const {uniqueUrl} =req.params;
+  const note = await Note.findOne({ uniqueUrl });
+  if (!note){
+   return  res.status(404).json({ error: 'Note not found ' });
+  }
+  if(note.isProtected){
+   return  res.json({ isProtected: note.password });
+  }
+  } catch (error) {
+    console.error('Failed to check password:', error);
+    res.status(500).json({ error: 'Failed to check password' });
+  }
+}
+export const checkVerified = async (req,res) => {
+  
+
+  try {
+    const { password } = req.body;
+  const {uniqueUrl} =req.params;
+  const note = await Note.findOne({ uniqueUrl });
+  if (note && note.password === password) {
+   return  res.json({ verified: true });
+  } 
+  return   res.json({ verified: false });
+  } catch (error) {
+    console.error('Failed to verify password:', error);
+    res.status(500).json({ error: 'Failed to verify password' });
+  }
+}
+
+export const addPasswordToNote = async (req, res) => {
+  try {
+    const { uniqueUrl } = req.params;
+    const { password } = req.body;
+
+    // Find the note by unique URL
+    const note = await Note.findOne({ uniqueUrl });
+    if (!note) {
+      return res.status(404).json({ error: "Note not found" });
+    }
+
+    // Update the note with the new password
+    note.password = password;
+    note.isProtected = true;
+
+    await note.save();
+    io.emit("noteUpdated", { uniqueUrl, isProtected: true }); // Notify clients
+
+    res.json({ message: "Password added successfully" });
+  } catch (error) {
+    console.error("Error adding password:", error);
+    res.status(500).json({ error: "Failed to add password to note" });
+  }
+};
+export const removePasswordFromNote = async (req, res) => {
+  try {
+    const { uniqueUrl } = req.params;
+
+    // Find the note by unique URL
+    const note = await Note.findOne({ uniqueUrl });
+    if (!note) {
+      return res.status(404).json({ error: "Note not found" });
+    }
+
+    // Remove password
+    note.password = "";
+    note.isProtected = false;
+
+    await note.save();
+    io.emit("noteUpdated", { uniqueUrl, isProtected: false }); // Notify clients
+
+    res.json({ message: "Password removed successfully" });
+  } catch (error) {
+    console.error("Error removing password:", error);
+    res.status(500).json({ error: "Failed to remove password from note" });
+  }
+};
