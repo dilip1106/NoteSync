@@ -68,9 +68,14 @@ const NoteEditor = () => {
       console.error("Error updating note:", error);
     }
   };
-
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
   const handleFileUpload = async (event) => {
     try {
+      const file = event.target.files[0];
+  if (file.size > MAX_FILE_SIZE) {
+    alert("File size exceeds 5 MB. Please choose a smaller file.");
+    return;
+  }
       const formData = new FormData();
       formData.append('file', event.target.files[0]);
   
@@ -117,21 +122,33 @@ const handleFileDownload = async () => {
     const fileUrl = `${API_URL}/download/${uniqueUrl}`;
     const response = await axios.get(fileUrl, { responseType: "blob" });
 
+    // Create a URL for the blob
     const url = window.URL.createObjectURL(new Blob([response.data]));
     const link = document.createElement("a");
     link.href = url;
 
-    // Extract the filename from the Content-Disposition header
+    // Extract filename from Content-Disposition
     const contentDisposition = response.headers["content-disposition"];
-    const fileNameMatch = contentDisposition?.match(/filename="(.+)"/);
-    const fileName = fileNameMatch ? fileNameMatch[1] : "download";
+    let fileName = "download.zip"; // Default filename
+    if (contentDisposition) {
+      const matches = contentDisposition.match(/filename="(.+)"/);
+      if (matches && matches[1]) {
+        fileName = decodeURIComponent(matches[1]); // Decode for special characters
+      }
+    }
 
     link.setAttribute("download", fileName);
     document.body.appendChild(link);
     link.click();
+
+    // Cleanup
     link.remove();
+    window.URL.revokeObjectURL(url);
   } catch (error) {
     console.error("Error downloading file:", error);
+
+    // Handle errors with better feedback
+    alert("Failed to download the file. Please try again later.");
   }
 };
 

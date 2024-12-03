@@ -3,6 +3,7 @@ import { io } from "../socket/socket.js";
 import fs from "fs";
 import path from "path";
 import multer from "multer";
+import archiver from "archiver";
 
 const __dirname = path.resolve();
 
@@ -21,6 +22,7 @@ const storage = multer.diskStorage({
 });
 
 export const upload = multer({ storage });
+
 export const uploadFile = async (req, res) => {
   try {
     const { uniqueUrl } = req.params;
@@ -39,19 +41,33 @@ export const uploadFile = async (req, res) => {
       }
     }
 
-    // Save the new file with its original name
+    // Save the uploaded file and create a ZIP
     const originalFileName = req.file.originalname;
-    const fileName = `${Date.now()}_${originalFileName}`; // Optional: add timestamp to ensure uniqueness
+    const fileName = `${Date.now()}_${originalFileName}`;
     const filePath = path.join(__dirname, 'uploads', fileName);
+    const zipFileName = `${Date.now()}_${path.basename(fileName, path.extname(fileName))}.zip`;
+    const zipFilePath = path.join(__dirname, 'uploads', zipFileName);
 
-    fs.renameSync(req.file.path, filePath); // Move the uploaded file
+    // Rename and move the uploaded file
+    fs.renameSync(req.file.path, filePath);
 
-    // Update the database with the new file
-    note.filePath = fileName;
+    // Create a ZIP file
+    const output = fs.createWriteStream(zipFilePath);
+    const archive = archiver('zip', { zlib: { level: 9 } });
+
+    archive.pipe(output);
+    archive.file(filePath, { name: originalFileName });
+    await archive.finalize();
+
+    // Delete the original file after zipping
+    fs.unlinkSync(filePath);
+
+    // Update the database with the new ZIP file
+    note.filePath = zipFileName;
     note.hasFile = true;
     await note.save();
 
-    res.status(200).json({ message: 'File uploaded successfully', fileName: originalFileName });
+    res.status(200).json({ message: 'File uploaded and zipped successfully', fileName: zipFileName });
   } catch (error) {
     console.error('Error uploading file:', error);
     res.status(500).json({ error: 'Failed to upload file' });
@@ -69,36 +85,24 @@ export const downloadFile = async (req, res) => {
       return res.status(404).json({ error: 'File not found' });
     }
 
-    const filePath = path.join(__dirname, 'uploads', note.filePath);
-    
-    if (!fs.existsSync(filePath)) {
+    const zipFilePath = path.join(__dirname, 'uploads', note.filePath);
+
+    if (!fs.existsSync(zipFilePath)) {
       return res.status(404).json({ error: 'File not found on server' });
     }
 
-    // Extract the file extension and use it to determine the MIME type
-    const extname = path.extname(note.filePath).toLowerCase();
-    const mimeTypes = {
-      '.pdf': 'application/pdf',
-      '.jpg': 'image/jpeg',
-      '.jpeg': 'image/jpeg',
-      '.png': 'image/png',
-      '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      '.txt': 'text/plain',
-      '.csv': 'text/csv',
-    };
-
-    const contentType = mimeTypes[extname] || 'application/octet-stream';
-
-    // Send the file with the correct MIME type and filename
-    res.setHeader('Content-Type', contentType);
+    // Set the correct headers for downloading
+    res.setHeader('Content-Type', 'application/zip');
     res.setHeader('Content-Disposition', `attachment; filename="${note.filePath}"`);
-    fs.createReadStream(filePath).pipe(res);
+
+    // Stream the ZIP file
+    fs.createReadStream(zipFilePath).pipe(res);
   } catch (error) {
     console.error('Error downloading file:', error);
     res.status(500).json({ error: 'Failed to download file' });
   }
 };
+
 // Create a new note
 export const createNote = async (req, res) => {
   try {
