@@ -6,7 +6,7 @@ import NoteEditor from './components/NoteEditor';
 const App = () => (
   <Router>
     <Routes>
-      {/* <Route path="/" element={<Home />} /> */}
+      <Route path="/" element={<Home />} />
       <Route path="/:uniqueUrl" element={<NoteEditor />} />
     </Routes>
   </Router>
