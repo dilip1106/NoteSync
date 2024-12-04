@@ -86,7 +86,7 @@ const [resetpasswordError, setResetPasswordError] = useState("");
   }, [uniqueUrl]);
 
   useEffect(() => {
-    const socket = io("http://localhost:5000");
+    const socket = io("https://notesync-bad5.onrender.com");
 
     // Notify server that this client has joined a specific uniqueUrl
     socket.emit("joinPage", uniqueUrl);
