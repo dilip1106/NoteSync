@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import io from "socket.io-client";
-
+import "../App.css"
 const NoteEditor = () => {
   const { uniqueUrl } = useParams();
   const [content, setContent] = useState("");
@@ -283,11 +283,7 @@ const [resetpasswordError, setResetPasswordError] = useState("");
           rows="10"
         />
         <div>
-          <input
-            type="file"
-            onChange={handleFileUpload}
-            style={styles.input} // Apply new style here
-          />
+          <input type="file" className="file-input w-full max-w-xs m-2" onChange={handleFileUpload}/>
           <button
             onClick={handleFileDownload}
             style={buttonStyles("#333")}
