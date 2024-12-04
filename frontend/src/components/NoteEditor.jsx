@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import io from "socket.io-client";
-import "../App.css"
+
 const NoteEditor = () => {
   const { uniqueUrl } = useParams();
   const [content, setContent] = useState("");
@@ -86,11 +86,17 @@ const [resetpasswordError, setResetPasswordError] = useState("");
   }, [uniqueUrl]);
 
   useEffect(() => {
-    const socket = io("https://notesync-bad5.onrender.com");
+    const socket = io("https://notesync-bad5.onrender.com/");
 
     // Notify server that this client has joined a specific uniqueUrl
     socket.emit("joinPage", uniqueUrl);
-
+// Notify server that this client has joined a specific uniqueUrl
+socket.emit("joinPage", uniqueUrl);
+socket.on("noteUpdated", (updatedNote) => {
+      if (updatedNote.uniqueUrl === uniqueUrl) {
+        setContent(updatedNote.content);
+      }
+    });
     // Update the user count whenever it changes
     socket.on("userCountUpdated", (count) => {
       setUserCount(count); // Update the state with the new user count
@@ -248,8 +254,8 @@ const [resetpasswordError, setResetPasswordError] = useState("");
     {isLoading ? (
       <p className="text-2xl animate-pulse">Loading...</p>
     ) : isPasswordProtected && !passwordVerified ? (
-      <div className="flex flex-col items-center space-y-4">
-        <p className="text-lg">This note is password protected. Please enter the password:</p>
+      <div style={{display:"flex", alignItems:"center", flexDirection:"column"}}>
+        <p >This note is password protected. Please enter the password:</p>
         <input
           type="password"
           value={password}
@@ -283,7 +289,11 @@ const [resetpasswordError, setResetPasswordError] = useState("");
           rows="10"
         />
         <div>
-          <input type="file" className="file-input w-full max-w-xs m-2" onChange={handleFileUpload}/>
+          <input
+            type="file"
+            onChange={handleFileUpload}
+            style={styles.fileInput} // Apply new style here
+          />
           <button
             onClick={handleFileDownload}
             style={buttonStyles("#333")}
@@ -345,7 +355,7 @@ const [resetpasswordError, setResetPasswordError] = useState("");
                 onChange={(e) => setEnteredPassword(e.target.value)}
                 style={styles.input} // Apply new style here
               />
-              {passwordError && <p className="text-red-500">{passwordError}</p>}
+              {resetpasswordError && <p className="text-red-500">{resetpasswordError}</p>}
               <div className="space-x-4">
                 <button
                   onClick={verifyAndRemovePassword}
@@ -410,7 +420,8 @@ const styles = {
     marginTop: "20px",
   },
   removeButton: {
-    marginLeft: "10px",
+    height:"45px",
+    marginRight: "10px",
     color: "white",
     backgroundColor: "#FF5C5C", // Red background
     border: "none",
@@ -420,6 +431,8 @@ const styles = {
     transition: "background-color 0.3s ease", // Smooth background change
   },
   button: {
+    height:"45px",
+    marginRight: "10px",
     padding: "12px 20px",
     borderRadius: "6px",
     cursor: "pointer",
@@ -436,6 +449,7 @@ const styles = {
   verifyButton: {
     backgroundColor: "#007BFF", // Blue background
     color: "white",
+    marginRight:"15px",
   },
   removePasswordButton: {
     backgroundColor: "#FF5C5C", // Red background for removal
@@ -451,11 +465,23 @@ const styles = {
     padding: "12px", // Increased padding for bigger input
     fontSize: "18px", // Bigger font size
     borderRadius: "6px", // Rounded corners
-    width: "10%", // Full width
+    width: "150px", // Full width
     marginBottom: "10px", // Space between inputs
     outline: "none", // Remove default outline
     boxSizing: "border-box", // Ensure padding doesn't affect width
   },
+  fileInput:{
+    backgroundColor: "#333", // Dark background for inputs
+    color: "white", // White text color
+    padding: "12px", // Increased padding for bigger input
+    fontSize: "15px", // Bigger font size
+    borderRadius: "6px", // Rounded corners
+    width: "170px", // Full width
+    marginBottom: "10px", // Space between inputs
+    outline: "none", // Remove default outline
+    boxSizing: "border-box",
+    marginRight:"10px",
+  }
 };
 
 const buttonStyles = (color) => ({
